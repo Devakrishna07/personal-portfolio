@@ -1,1 +1,1 @@
-export { GeometricWallSection } from "./GeometricWallSection";
+export { HeroSection } from "./HeroSection";

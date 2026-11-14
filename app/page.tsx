@@ -1,9 +1,9 @@
-import { GeometricWallSection } from "@/sections/hero";
+import { HeroSection } from "@/sections/hero";
 
 export default function Home() {
   return (
     <main>
-      <GeometricWallSection />
+      <HeroSection />
     </main>
   );
 }

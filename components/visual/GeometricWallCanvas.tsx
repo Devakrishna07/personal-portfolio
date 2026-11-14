@@ -4,10 +4,13 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { getResponsiveGrid, WALL_CONFIG } from "@/hooks/animation/useGeometricWall";
 
-interface Runner {
-  pos: THREE.Vector2;
-  dir: THREE.Vector2;
+interface Beam {
+  isHorizontal: boolean;
+  channelIndex: number; // Channel grid index
+  posCoord: number;      // Current head position along the channel axis
+  dir: number;           // +1 or -1
   speed: number;
+  length: number;        // Length of the straight beam
 }
 
 export default function GeometricWallCanvas() {
@@ -78,28 +81,65 @@ export default function GeometricWallCanvas() {
     instancedMesh.instanceMatrix.needsUpdate = true;
     scene.add(instancedMesh);
 
-    // --- 4. 6 Distinct Autonomous Line Runners ---
-    const runnerUniforms = {
-      uPositions: { value: new Float32Array(12) }, // 6 pairs of (x, y)
+    // --- 4. 10 Straight Beams in Diverse Directions ---
+    // Distribute directional types evenly across 0-3 (L->R, R->L, T->B, B->T) and 4 (random)
+    const resetBeam = (b: Beam, dirType: number) => {
+      const type = dirType % 5;
+      if (type === 0) {
+        // Left -> Right
+        b.isHorizontal = true;
+        b.channelIndex = Math.floor(Math.random() * rows);
+        b.posCoord = -halfW - 4;
+        b.dir = 1;
+      } else if (type === 1) {
+        // Right -> Left
+        b.isHorizontal = true;
+        b.channelIndex = Math.floor(Math.random() * rows);
+        b.posCoord = halfW + 4;
+        b.dir = -1;
+      } else if (type === 2) {
+        // Top -> Bottom
+        b.isHorizontal = false;
+        b.channelIndex = Math.floor(Math.random() * cols);
+        b.posCoord = halfH + 4;
+        b.dir = -1;
+      } else if (type === 3) {
+        // Bottom -> Top
+        b.isHorizontal = false;
+        b.channelIndex = Math.floor(Math.random() * cols);
+        b.posCoord = -halfH - 4;
+        b.dir = 1;
+      } else {
+        // Random channel
+        const isH = Math.random() > 0.5;
+        b.isHorizontal = isH;
+        b.channelIndex = isH ? Math.floor(Math.random() * rows) : Math.floor(Math.random() * cols);
+        const limit = isH ? halfW : halfH;
+        b.dir = Math.random() > 0.5 ? 1 : -1;
+        b.posCoord = -b.dir * (limit + 4);
+      }
+      b.speed = 0.08 + Math.random() * 0.05;
+      b.length = 3.5 + Math.random() * 2.0; // Straight stretch length
+    };
+
+    const BEAM_COUNT = 10;
+    const beams: Beam[] = Array.from({ length: BEAM_COUNT }, (_, i) => {
+      const b: Beam = { isHorizontal: true, channelIndex: 0, posCoord: 0, dir: 1, speed: 0.1, length: 4 };
+      resetBeam(b, i);
+      // Stagger initial progress along line
+      b.posCoord += (Math.random() * 14 - 7) * b.dir;
+      return b;
+    });
+
+    // Beam data sent to GPU: [x, y, isHorizontal (1 or 0), length] x 10 = 40 floats
+    const beamData = new Float32Array(BEAM_COUNT * 4);
+    const beamUniforms = {
+      uBeams: { value: beamData },
       uCursorPos: { value: new THREE.Vector2(999, 999) },
     };
 
-    const runners: Runner[] = Array.from({ length: 6 }, () => {
-      const isHorizontal = Math.random() > 0.5;
-      return {
-        pos: new THREE.Vector2(
-          (Math.floor(Math.random() * cols) * step - halfW),
-          (Math.floor(Math.random() * rows) * step - halfH)
-        ),
-        dir: isHorizontal
-          ? new THREE.Vector2(Math.random() > 0.5 ? 1 : -1, 0)
-          : new THREE.Vector2(0, Math.random() > 0.5 ? 1 : -1),
-        speed: (0.04 + Math.random() * 0.04) * step,
-      };
-    });
-
     const stripMat = new THREE.ShaderMaterial({
-      uniforms: runnerUniforms,
+      uniforms: beamUniforms,
       vertexShader: `
         varying vec3 vWorldPos;
         varying vec2 vUv;
@@ -115,27 +155,46 @@ export default function GeometricWallCanvas() {
         }
       `,
       fragmentShader: `
-        uniform float uPositions[12];
+        uniform float uBeams[40]; // 10 beams * 4 floats (x, y, isHorizontal, length)
         uniform vec2 uCursorPos;
         varying vec3 vWorldPos;
         varying vec2 vUv;
 
         void main() {
           float pulse = 0.0;
-          // Calculate distance along lines to the 6 moving runners
-          for (int i = 0; i < 6; i++) {
-            vec2 rPos = vec2(uPositions[i * 2], uPositions[i * 2 + 1]);
-            float dist = length(vWorldPos.xy - rPos);
-            // Crisp trailing line tail of ~3.5 grid units
-            pulse += smoothstep(3.5, 0.0, dist) * 2.8;
+
+          // Check each of the 10 straight beams
+          for (int i = 0; i < 10; i++) {
+            float bx = uBeams[i * 4];
+            float by = uBeams[i * 4 + 1];
+            float isH = uBeams[i * 4 + 2];
+            float bLen = uBeams[i * 4 + 3];
+
+            if (isH > 0.5) {
+              // Horizontal straight beam: must match exact channel Y
+              float dy = abs(vWorldPos.y - by);
+              if (dy < 0.12) {
+                float dx = abs(vWorldPos.x - bx);
+                // Continuous straight stretch of light
+                pulse += smoothstep(bLen, 0.0, dx) * 3.2;
+              }
+            } else {
+              // Vertical straight beam: must match exact channel X
+              float dx = abs(vWorldPos.x - bx);
+              if (dx < 0.12) {
+                float dy = abs(vWorldPos.y - by);
+                // Continuous straight stretch of light
+                pulse += smoothstep(bLen, 0.0, dy) * 3.2;
+              }
+            }
           }
 
           float cursorGlow = smoothstep(4.0, 0.0, length(vWorldPos.xy - uCursorPos)) * 1.5;
-          float intensity = pulse + cursorGlow + 0.12;
+          float intensity = pulse + cursorGlow + 0.08;
           float edgeFalloff = sin(vUv.y * 3.14159);
-          intensity *= (0.35 + 0.65 * edgeFalloff);
+          intensity *= (0.3 + 0.7 * edgeFalloff);
 
-          vec3 color = mix(vec3(0.55, 0.0, 0.08), vec3(1.0, 0.12, 0.25), clamp(intensity * 0.5, 0.0, 1.0));
+          vec3 color = mix(vec3(0.5, 0.0, 0.06), vec3(1.0, 0.1, 0.22), clamp(intensity * 0.45, 0.0, 1.0));
           gl_FragColor = vec4(color * intensity, 1.0);
         }
       `,
@@ -144,7 +203,7 @@ export default function GeometricWallCanvas() {
       depthTest: false,
     });
 
-    const stripW = gapSize * 1.1;
+    const stripW = gapSize * 1.15;
     const hStrips = new THREE.InstancedMesh(new THREE.PlaneGeometry(step, stripW), stripMat, (rows + 1) * cols);
     const vStrips = new THREE.InstancedMesh(new THREE.PlaneGeometry(stripW, step), stripMat, (cols + 1) * rows);
     hStrips.renderOrder = 2;
@@ -190,9 +249,8 @@ export default function GeometricWallCanvas() {
       if (hits.length > 0) {
         const pt = hits[0].point;
         cursorLight.position.set(pt.x, pt.y, 1.5);
-        runnerUniforms.uCursorPos.value.set(pt.x, pt.y);
+        beamUniforms.uCursorPos.value.set(pt.x, pt.y);
 
-        // Hover depression
         const p2d = new THREE.Vector2(pt.x, pt.y);
         for (let i = 0; i < totalBlocks; i++) {
           const d = p2d.distanceTo(new THREE.Vector2(blockPositions[i].x, blockPositions[i].y));
@@ -220,28 +278,33 @@ export default function GeometricWallCanvas() {
       camera.position.y = curY * 1.0;
       camera.lookAt(0, 0, 0);
 
-      // Update 6 Autonomous Runners
-      const posArr = runnerUniforms.uPositions.value;
-      for (let i = 0; i < 6; i++) {
-        const r = runners[i];
-        r.pos.addScaledVector(r.dir, r.speed);
+      // Update 10 Straight Beams
+      const bArr = beamUniforms.uBeams.value;
+      for (let i = 0; i < BEAM_COUNT; i++) {
+        const b = beams[i];
+        b.posCoord += b.dir * b.speed;
 
-        // Turn at random grid intersections or bounds
-        if (Math.random() < 0.03 || Math.abs(r.pos.x) > halfW || Math.abs(r.pos.y) > halfH) {
-          if (Math.abs(r.pos.x) > halfW) r.pos.x = -Math.sign(r.pos.x) * halfW;
-          if (Math.abs(r.pos.y) > halfH) r.pos.y = -Math.sign(r.pos.y) * halfH;
-
-          // Align to grid line and turn 90 deg
-          if (r.dir.x !== 0) {
-            r.pos.x = Math.round(r.pos.x / step) * step;
-            r.dir.set(0, Math.random() > 0.5 ? 1 : -1);
-          } else {
-            r.pos.y = Math.round(r.pos.y / step) * step;
-            r.dir.set(Math.random() > 0.5 ? 1 : -1, 0);
-          }
+        const maxBound = b.isHorizontal ? halfW + 6 : halfH + 6;
+        if (b.dir > 0 && b.posCoord > maxBound) {
+          resetBeam(b, i);
+        } else if (b.dir < 0 && b.posCoord < -maxBound) {
+          resetBeam(b, i);
         }
-        posArr[i * 2] = r.pos.x;
-        posArr[i * 2 + 1] = r.pos.y;
+
+        // Exact channel coordinates
+        if (b.isHorizontal) {
+          const channelY = b.channelIndex * step - halfH - gapSize / 2;
+          bArr[i * 4] = b.posCoord;
+          bArr[i * 4 + 1] = channelY;
+          bArr[i * 4 + 2] = 1.0; // Horizontal flag
+          bArr[i * 4 + 3] = b.length;
+        } else {
+          const channelX = b.channelIndex * step - halfW - gapSize / 2;
+          bArr[i * 4] = channelX;
+          bArr[i * 4 + 1] = b.posCoord;
+          bArr[i * 4 + 2] = 0.0; // Vertical flag
+          bArr[i * 4 + 3] = b.length;
+        }
       }
 
       // Spring back depressed blocks
