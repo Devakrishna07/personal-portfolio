@@ -21,29 +21,22 @@ export function SplitHeroLayout({
 
       {/* Main Foreground Layout */}
       <div className="relative z-10 w-full min-h-screen flex flex-col lg:flex-row items-center justify-between pointer-events-none">
-        {/* Image Container:
-            - flex items-center justify-center in all cases
-            - Mobile & Tablet: w-screen with no explicit height specified
-            - Desktop (lg:): w-[40%] and h-screen
-        */}
-        <div className="order-1 lg:order-2 w-screen lg:w-[50%] lg:h-screen flex items-center justify-center relative pointer-events-none select-none mt-[12px] lg:mt-0 px-4 sm:px-6 lg:px-0">
-          <div className="flex items-center justify-center">
+        {/* Right Side: Exactly 50% width on desktop, 0 margin, fully scaled image */}
+        <div className="order-1 lg:order-2 w-screen lg:w-1/2 h-[52vh] sm:h-[60vh] lg:h-screen m-0 p-0 flex items-end justify-center lg:justify-end relative pointer-events-none select-none">
+          <div className="relative w-full h-full flex items-end justify-center lg:justify-end">
             <Image
-              src="/deva-closeup.png"
+              src="/deva-mood.png"
               alt="Deva Prasad NR"
-              width={1200}
-              height={1200}
+              fill
               priority
-              className="w-auto sm:max-w-[90dvw] lg:max-w-none max-h-[50vh] sm:max-h-[60dvh] lg:max-h-[calc(100vh-10px)] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.03]"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-contain object-bottom lg:object-right-bottom scale-105 lg:scale-110 drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.02]"
             />
           </div>
         </div>
 
-        {/* Text Content:
-            - Mobile & Tablet: Below image (order-2)
-            - Desktop: Left side w-[60%] (lg:order-1)
-        */}
-        <div className="order-2 lg:order-1 w-full lg:w-[50%] px-6 sm:px-12 lg:pl-16 xl:pl-24 pt-6 sm:pt-8 lg:pt-0 pb-16 lg:pb-0 flex flex-col justify-center pointer-events-auto">
+        {/* Left Side: Portfolio Typography (50% on desktop) */}
+        <div className="order-2 lg:order-1 w-full lg:w-1/2 px-6 sm:px-12 lg:pl-16 xl:pl-24 pt-4 sm:pt-6 lg:pt-0 pb-16 lg:pb-0 flex flex-col justify-center pointer-events-auto">
           {content}
         </div>
       </div>
