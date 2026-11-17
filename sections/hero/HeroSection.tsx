@@ -12,10 +12,14 @@ const GeometricWallCanvas = dynamic(
   { ssr: false, loading: () => <WallLoader /> }
 );
 
-export function HeroSection() {
+interface HeroSectionProps {
+  showBackground?: boolean;
+}
+
+export function HeroSection({ showBackground = false }: HeroSectionProps) {
   return (
     <SplitHeroLayout
-      background={<GeometricWallCanvas />}
+      background={showBackground ? <GeometricWallCanvas /> : undefined}
       content={<HeroContent />}
     />
   );

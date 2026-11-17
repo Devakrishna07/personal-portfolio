@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 
 interface SplitHeroLayoutProps {
-  background: React.ReactNode;
+  background?: React.ReactNode;
   content: React.ReactNode;
 }
 
@@ -15,12 +15,14 @@ export function SplitHeroLayout({
   return (
     <section
       id="home"
-      className="relative w-dvw h-dvh min-h-dvh max-w-dvw overflow-hidden bg-[#07080a] flex items-center justify-between"
+      className="relative w-dvw h-dvh min-h-dvh max-w-dvw overflow-hidden flex items-center justify-between"
     >
-      {/* 3D Geometric Wall Background */}
-      <div className="absolute inset-0 z-0 pointer-events-auto">
-        {background}
-      </div>
+      {/* Optional 3D Geometric Wall Background if passed */}
+      {background && (
+        <div className="absolute inset-0 z-0 pointer-events-auto">
+          {background}
+        </div>
+      )}
 
       {/* Main Foreground Layout */}
       <div className="relative z-10 w-dvw h-dvh min-h-dvh flex flex-col lg:flex-row items-center justify-between pointer-events-none">
