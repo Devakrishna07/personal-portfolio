@@ -30,6 +30,8 @@ export function AboutSection() {
             name={data.about_name}
             imageFit={data.about_image_fit}
             imagePosition={data.about_image_position}
+            focalX={data.about_image_focal_x}
+            focalY={data.about_image_focal_y}
           />
         </div>
 

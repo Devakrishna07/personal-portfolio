@@ -6,11 +6,15 @@ export interface PortfolioContent {
   hero_image_fit: "contain" | "cover";
   hero_image_position: "bottom-right" | "center" | "bottom-center" | "top";
   hero_image_scale: number;
+  hero_image_focal_x?: number;
+  hero_image_focal_y?: number;
   about_name: string;
   about_roles: string[];
   about_image: string;
   about_image_fit: "cover" | "contain";
   about_image_position: "top" | "center" | "bottom";
+  about_image_focal_x?: number;
+  about_image_focal_y?: number;
   about_location: string;
   about_role_title: string;
   about_email: string;
@@ -28,11 +32,15 @@ export const DEFAULT_PORTFOLIO_CONTENT: PortfolioContent = {
   hero_image_fit: "contain",
   hero_image_position: "bottom-right",
   hero_image_scale: 110,
+  hero_image_focal_x: 50,
+  hero_image_focal_y: 100,
   about_name: "Deva Prasad NR",
   about_roles: ["Developer", "Designer", "Creator", "Engineer"],
   about_image: "/aboutme_image.png",
   about_image_fit: "cover",
   about_image_position: "top",
+  about_image_focal_x: 50,
+  about_image_focal_y: 20,
   about_location: "Karnataka, India",
   about_role_title: "Full Stack & Creative Dev",
   about_email: "devaprasadnr@gmail.com",

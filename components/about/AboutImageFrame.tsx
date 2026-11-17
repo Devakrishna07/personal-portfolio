@@ -10,6 +10,8 @@ interface AboutImageFrameProps {
   name?: string;
   imageFit?: "cover" | "contain";
   imagePosition?: "top" | "center" | "bottom";
+  focalX?: number;
+  focalY?: number;
 }
 
 export function AboutImageFrame({
@@ -17,6 +19,8 @@ export function AboutImageFrame({
   name = aboutConfig.name,
   imageFit = "cover",
   imagePosition = "top",
+  focalX = 50,
+  focalY = 20,
 }: AboutImageFrameProps) {
   const [imgSrc, setImgSrc] = useState(image);
 
@@ -31,6 +35,9 @@ export function AboutImageFrame({
       : imagePosition === "center"
       ? "object-center"
       : "object-top";
+
+  const objectPositionStyle =
+    imageFit === "cover" ? { objectPosition: `${focalX}% ${focalY}%` } : undefined;
 
   return (
     <motion.div
@@ -65,8 +72,9 @@ export function AboutImageFrame({
             alt={name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 440px"
+            style={objectPositionStyle}
             onError={() => setImgSrc(aboutConfig.fallbackImagePath)}
-            className={`${fitClass} ${positionClass} opacity-100 transition-transform duration-700 ease-out group-hover:scale-105`}
+            className={`${fitClass} ${imageFit === "contain" ? positionClass : ""} opacity-100 transition-transform duration-700 ease-out group-hover:scale-105`}
             priority
           />
           {/* Subtle bottom vignette to keep name legible */}

@@ -10,6 +10,8 @@ interface SplitHeroLayoutProps {
   imageFit?: "contain" | "cover";
   imagePosition?: "bottom-right" | "center" | "bottom-center" | "top";
   imageScale?: number;
+  focalX?: number;
+  focalY?: number;
 }
 
 export function SplitHeroLayout({
@@ -19,8 +21,9 @@ export function SplitHeroLayout({
   imageFit = "contain",
   imagePosition = "bottom-right",
   imageScale = 110,
+  focalX = 50,
+  focalY = 100,
 }: SplitHeroLayoutProps) {
-  // Map positioning choices to Tailwind object position classes
   const positionClasses = {
     "bottom-right": "object-bottom lg:object-right-bottom justify-center lg:justify-end",
     "center": "object-center justify-center",
@@ -29,7 +32,12 @@ export function SplitHeroLayout({
   }[imagePosition] || "object-bottom lg:object-right-bottom justify-center lg:justify-end";
 
   const fitClass = imageFit === "cover" ? "object-cover" : "object-contain";
-  const scaleStyle = { transform: `scale(${imageScale / 100})` };
+  
+  // When cover is used, apply dynamic focal point coordinates
+  const imageStyle: React.CSSProperties = {
+    transform: `scale(${imageScale / 100})`,
+    ...(imageFit === "cover" ? { objectPosition: `${focalX}% ${focalY}%` } : {}),
+  };
 
   return (
     <section
@@ -54,8 +62,8 @@ export function SplitHeroLayout({
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
-              style={scaleStyle}
-              className={`${fitClass} ${positionClasses} drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.02] transition-all duration-300`}
+              style={imageStyle}
+              className={`${fitClass} ${imageFit === 'contain' ? positionClasses : ''} drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.02] transition-all duration-300`}
             />
           </div>
         </div>

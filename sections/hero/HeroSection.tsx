@@ -36,6 +36,8 @@ export function HeroSection({ showBackground = false }: HeroSectionProps) {
       imageFit={data.hero_image_fit}
       imagePosition={data.hero_image_position}
       imageScale={data.hero_image_scale}
+      focalX={data.hero_image_focal_x}
+      focalY={data.hero_image_focal_y}
       content={<HeroContent name={data.hero_name} roles={data.hero_roles} />}
     />
   );

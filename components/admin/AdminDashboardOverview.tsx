@@ -1,28 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useTransition } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { signOutAdmin } from "@/actions/auth";
 
 interface AdminDashboardOverviewProps {
   userEmail?: string;
 }
 
 export function AdminDashboardOverview({ userEmail }: AdminDashboardOverviewProps) {
-  const router = useRouter();
-  const [loggingOut, setLoggingOut] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const handleSignOut = async () => {
-    setLoggingOut(true);
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push("/adminlogin");
-      router.refresh();
-    } catch {
-      router.push("/adminlogin");
-    }
+  const handleSignOut = () => {
+    startTransition(async () => {
+      await signOutAdmin();
+    });
   };
 
   return (
@@ -32,7 +24,7 @@ export function AdminDashboardOverview({ userEmail }: AdminDashboardOverviewProp
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-mono text-neutral-400">AUTHENTICATED // ADMIN PORTAL</span>
+            <span className="text-xs font-mono text-neutral-400">AUTHENTICATED // SECURE COOKIE SESSION</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
             Website Content Manager
@@ -52,10 +44,10 @@ export function AdminDashboardOverview({ userEmail }: AdminDashboardOverviewProp
           </Link>
           <button
             onClick={handleSignOut}
-            disabled={loggingOut}
-            className="px-4 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/40 border border-red-800/60 text-red-400 hover:text-red-300 text-xs font-mono transition-colors cursor-pointer"
+            disabled={isPending}
+            className="px-4 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/40 border border-red-800/60 text-red-400 hover:text-red-300 text-xs font-mono transition-colors cursor-pointer disabled:opacity-50"
           >
-            {loggingOut ? "Signing Out..." : "Sign Out"}
+            {isPending ? "Ending Session..." : "Sign Out"}
           </button>
         </div>
       </div>
@@ -90,7 +82,7 @@ export function AdminDashboardOverview({ userEmail }: AdminDashboardOverviewProp
               Home (Hero)
             </h3>
             <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-              Edit display name, comma-separated glitch effect roles, and the main hero portrait photo.
+              Edit display name, comma-separated glitch effect roles, hero image, and scale/alignment.
             </p>
           </div>
 
@@ -121,7 +113,7 @@ export function AdminDashboardOverview({ userEmail }: AdminDashboardOverviewProp
               About Me
             </h3>
             <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-              Update name, glitch roles, framed image, location, email, LinkedIn, GitHub, and full biography.
+              Update name, glitch roles, image, crop focus, location, email, LinkedIn, GitHub, and biography.
             </p>
           </div>
 

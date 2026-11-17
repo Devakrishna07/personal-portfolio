@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getPortfolioContent, updatePortfolioContent } from "@/lib/portfolio/service";
 import { DEFAULT_PORTFOLIO_CONTENT, PortfolioContent } from "@/lib/portfolio/types";
+import { CropFrameSelector } from "@/components/admin/CropFrameSelector";
+import { ImageStudioModal } from "@/components/admin/ImageStudioModal";
 
 export function AboutContentEditor() {
   const router = useRouter();
@@ -13,6 +15,8 @@ export function AboutContentEditor() {
   const [imagePath, setImagePath] = useState("");
   const [fit, setFit] = useState<"cover" | "contain">("cover");
   const [position, setPosition] = useState<"top" | "center" | "bottom">("top");
+  const [focalX, setFocalX] = useState(50);
+  const [focalY, setFocalY] = useState(20);
   const [location, setLocation] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
   const [email, setEmail] = useState("");
@@ -23,6 +27,7 @@ export function AboutContentEditor() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [studioOpen, setStudioOpen] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -40,6 +45,8 @@ export function AboutContentEditor() {
     setImagePath(data.about_image);
     setFit(data.about_image_fit || "cover");
     setPosition(data.about_image_position || "top");
+    setFocalX(data.about_image_focal_x ?? 50);
+    setFocalY(data.about_image_focal_y ?? 20);
     setLocation(data.about_location);
     setRoleTitle(data.about_role_title);
     setEmail(data.about_email);
@@ -101,6 +108,8 @@ export function AboutContentEditor() {
       about_image: imagePath,
       about_image_fit: fit,
       about_image_position: position,
+      about_image_focal_x: focalX,
+      about_image_focal_y: focalY,
       about_location: location,
       about_role_title: roleTitle,
       about_email: email,
@@ -154,7 +163,7 @@ export function AboutContentEditor() {
           </button>
         </div>
         <p className="text-xs font-mono text-neutral-400 mt-1">
-          Update profile photo, image alignment, glitch role switcher, and contact links.
+          Update profile photo, visual crop frame, glitch roles, and contact links.
         </p>
       </div>
 
@@ -244,8 +253,15 @@ export function AboutContentEditor() {
               placeholder="https://...supabase.co/storage/v1/object/public/portfolio-assets/..."
               className="flex-1 px-4 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors font-mono"
             />
-            <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-red-950/50 hover:bg-red-900/50 border border-red-700/60 text-xs font-mono text-red-300 cursor-pointer transition-colors shrink-0">
-              <span>{uploading ? "Uploading..." : "Upload to Supabase Storage"}</span>
+            <button
+              type="button"
+              onClick={() => setStudioOpen(true)}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold text-xs font-mono transition-all shrink-0 cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.35)]"
+            >
+              <span>✨ AI Image Studio</span>
+            </button>
+            <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-xs font-mono text-neutral-200 cursor-pointer transition-colors shrink-0">
+              <span>{uploading ? "Uploading..." : "Direct Upload"}</span>
               <input
                 type="file"
                 accept="image/*"
@@ -255,44 +271,65 @@ export function AboutContentEditor() {
               />
             </label>
           </div>
+          <span className="text-[11px] font-mono text-neutral-500 mt-1.5 block">
+            Click <strong>&quot;✨ AI Image Studio&quot;</strong> to remove background & upscale 2x before saving, or upload directly.
+          </span>
         </div>
 
         {/* Alignment & Position Controls */}
-        <div className="pt-4 border-t border-neutral-800 space-y-4">
+        <div className="pt-4 border-t border-neutral-800 space-y-5">
           <h3 className="text-xs font-mono uppercase tracking-wider text-red-400 font-semibold">
-            About Frame Image Alignment & Crop Focus
+            About Frame Image Alignment & Object Fit
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-mono text-neutral-400 mb-1.5">
-                Crop Focus Position
-              </label>
-              <select
-                value={position}
-                onChange={(e) => setPosition(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs font-mono focus:outline-none focus:border-red-500"
-              >
-                <option value="top">Top (Face / Head Focus)</option>
-                <option value="center">Center</option>
-                <option value="bottom">Bottom</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-mono text-neutral-400 mb-1.5">
-                Object Fit
+                Object Fit Mode
               </label>
               <select
                 value={fit}
                 onChange={(e) => setFit(e.target.value as any)}
                 className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs font-mono focus:outline-none focus:border-red-500"
               >
-                <option value="cover">Cover (Fill Frame Entirely)</option>
+                <option value="cover">Cover (Fill & Select Crop Frame)</option>
                 <option value="contain">Contain (Full Image Visible)</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-xs font-mono text-neutral-400 mb-1.5">
+                Quick Focus
+              </label>
+              <select
+                value={position}
+                disabled={fit === "cover"}
+                onChange={(e) => setPosition(e.target.value as any)}
+                className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs font-mono focus:outline-none focus:border-red-500 disabled:opacity-40"
+              >
+                <option value="top">Top (Head/Face)</option>
+                <option value="center">Center</option>
+                <option value="bottom">Bottom</option>
+              </select>
+            </div>
           </div>
+
+          {/* Interactive Crop Frame for About Me (4:5 Frame) */}
+          {fit === "cover" && (
+            <div className="mt-4 pt-4 border-t border-neutral-800/80">
+              <CropFrameSelector
+                imageUrl={imagePath || "/aboutme_image.png"}
+                focalX={focalX}
+                focalY={focalY}
+                aspectRatioLabel="About 4:5 Glass Frame"
+                aspectRatioClass="aspect-[4/5]"
+                onChange={(x, y) => {
+                  setFocalX(x);
+                  setFocalY(y);
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Location & Email */}
@@ -387,6 +424,30 @@ export function AboutContentEditor() {
           </button>
         </div>
       </form>
+
+      {/* AI Image Studio Modal */}
+      <ImageStudioModal
+        isOpen={studioOpen}
+        onClose={() => setStudioOpen(false)}
+        onApplyAndUpload={async (processedBlob) => {
+          const formData = new FormData();
+          formData.append("file", processedBlob, "ai_processed_about.png");
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+          if (data.url) {
+            setImagePath(data.url);
+            setMessage({
+              type: "success",
+              text: "AI background removed & 2x upscaled! Uploaded to Supabase Storage.",
+            });
+          } else {
+            alert(data.error || "Upload failed");
+          }
+        }}
+      />
     </div>
   );
 }

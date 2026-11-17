@@ -1,17 +1,13 @@
 -- ===================================================================
--- Supabase Complete Setup Script: Storage Bucket, Policies & Tables
--- Copy and run this in your Supabase SQL Editor:
--- Dashboard -> SQL Editor -> New query -> Paste & Run
+-- Supabase Schema: Complete Setup with Crop Frame & Focal Point Columns
+-- Run in Supabase SQL Editor: Dashboard -> SQL Editor -> New Query -> Run
 -- ===================================================================
 
--- ===================================================================
--- 1. Create Supabase S3 Storage Bucket: 'portfolio-assets'
--- ===================================================================
+-- 1. Storage Bucket & Policies
 insert into storage.buckets (id, name, public)
 values ('portfolio-assets', 'portfolio-assets', true)
 on conflict (id) do nothing;
 
--- Storage Policies for 'portfolio-assets'
 drop policy if exists "Public Access to portfolio-assets" on storage.objects;
 create policy "Public Access to portfolio-assets"
   on storage.objects for select
@@ -29,10 +25,7 @@ create policy "Authenticated update to portfolio-assets"
   to authenticated
   using (bucket_id = 'portfolio-assets');
 
-
--- ===================================================================
--- 2. Create Public Profiles Table linked to auth.users
--- ===================================================================
+-- 2. Profiles Table
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade primary key,
   email text unique not null,
@@ -55,26 +48,7 @@ create policy "Allow users to update own profile"
   to authenticated
   using (auth.uid() = id);
 
--- Trigger for automatically adding newly registered users to public.profiles
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, email, full_name, role)
-  values (new.id, new.email, 'Deva Prasad NR', 'admin')
-  on conflict (id) do nothing;
-  return new;
-end;
-$$ language plpgsql security definer;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
-
-
--- ===================================================================
--- 3. Dynamic Portfolio Content Table with Alignment & Positioning
--- ===================================================================
+-- 3. Dynamic Portfolio Content Table with Focal Crop Coordinates
 create table if not exists public.portfolio_content (
   id text primary key default 'main',
   hero_name text default 'Deva Prasad NR',
@@ -83,11 +57,15 @@ create table if not exists public.portfolio_content (
   hero_image_fit text default 'contain',
   hero_image_position text default 'bottom-right',
   hero_image_scale int default 110,
+  hero_image_focal_x int default 50,
+  hero_image_focal_y int default 100,
   about_name text default 'Deva Prasad NR',
   about_roles text[] default array['Developer', 'Designer', 'Creator', 'Engineer'],
   about_image text default '/aboutme_image.png',
   about_image_fit text default 'cover',
   about_image_position text default 'top',
+  about_image_focal_x int default 50,
+  about_image_focal_y int default 20,
   about_location text default 'Karnataka, India',
   about_role_title text default 'Full Stack & Creative Dev',
   about_email text default 'devaprasadnr@gmail.com',
@@ -97,12 +75,16 @@ create table if not exists public.portfolio_content (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Ensure alignment columns exist if table was already created earlier
+-- Ensure all columns exist
 alter table public.portfolio_content add column if not exists hero_image_fit text default 'contain';
 alter table public.portfolio_content add column if not exists hero_image_position text default 'bottom-right';
 alter table public.portfolio_content add column if not exists hero_image_scale int default 110;
+alter table public.portfolio_content add column if not exists hero_image_focal_x int default 50;
+alter table public.portfolio_content add column if not exists hero_image_focal_y int default 100;
 alter table public.portfolio_content add column if not exists about_image_fit text default 'cover';
 alter table public.portfolio_content add column if not exists about_image_position text default 'top';
+alter table public.portfolio_content add column if not exists about_image_focal_x int default 50;
+alter table public.portfolio_content add column if not exists about_image_focal_y int default 20;
 
 alter table public.portfolio_content enable row level security;
 
@@ -123,7 +105,6 @@ create policy "Admin insert portfolio_content"
   to authenticated
   with check (true);
 
--- Insert initial default row if empty
 insert into public.portfolio_content (
   id,
   hero_name,
@@ -132,11 +113,15 @@ insert into public.portfolio_content (
   hero_image_fit,
   hero_image_position,
   hero_image_scale,
+  hero_image_focal_x,
+  hero_image_focal_y,
   about_name,
   about_roles,
   about_image,
   about_image_fit,
   about_image_position,
+  about_image_focal_x,
+  about_image_focal_y,
   about_location,
   about_role_title,
   about_email,
@@ -150,11 +135,15 @@ insert into public.portfolio_content (
   'contain',
   'bottom-right',
   110,
+  50,
+  100,
   'Deva Prasad NR',
   array['Developer', 'Designer', 'Creator', 'Engineer'],
   '/aboutme_image.png',
   'cover',
   'top',
+  50,
+  20,
   'Karnataka, India',
   'Full Stack & Creative Dev',
   'devaprasadnr@gmail.com',

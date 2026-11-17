@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
   try {
@@ -10,14 +10,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Use server client which passes auth cookies
+    const supabase = await createClient();
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
@@ -35,10 +29,9 @@ export async function POST(req: Request) {
       });
 
     if (uploadError) {
-      // Fallback: If bucket doesn't exist yet, explain clearly
       return NextResponse.json(
         {
-          error: `Supabase Storage upload failed: ${uploadError.message}. Ensure 'portfolio-assets' bucket exists in your Supabase dashboard.`,
+          error: `Supabase Storage upload failed: ${uploadError.message}. Ensure RLS policy for insert on 'portfolio-assets' is enabled in Supabase.`,
         },
         { status: 500 }
       );
