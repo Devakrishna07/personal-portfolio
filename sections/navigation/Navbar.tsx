@@ -12,7 +12,8 @@ import { useScrollPosition } from "@/hooks/ui/useScrollPosition";
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAtTop } = useScrollPosition(25);
+  // Activates only after scrolling past 75% of the viewport (past the hero)
+  const { isPastHero } = useScrollPosition(0.75);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -21,7 +22,7 @@ export function Navbar() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-40 w-full px-3 py-3 sm:px-6 sm:py-4 lg:px-8 pointer-events-none transition-all duration-300 ease-in-out ${
-          isAtTop
+          isPastHero
             ? "translate-y-0 opacity-100"
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
@@ -49,7 +50,7 @@ export function Navbar() {
 
       {/* Mobile Slide-Over Navigation Drawer with Ultra-Frost Glass */}
       <MobileNavDrawer
-        isOpen={isMobileMenuOpen}
+        isOpen={isMobileMenuOpen && isPastHero}
         onClose={closeMobileMenu}
         items={NAV_ITEMS}
       />

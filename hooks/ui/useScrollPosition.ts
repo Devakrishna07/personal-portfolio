@@ -2,42 +2,55 @@
 
 import { useEffect, useState } from "react";
 
+export interface ScrollState {
+  scrollY: number;
+  isPastHero: boolean;
+}
+
 /**
- * Custom hook to track window scroll position.
- * Uses passive event listener and requestAnimationFrame throttle.
+ * Custom hook to track window scroll position relative to the hero section.
+ * Uses a passive scroll listener and requestAnimationFrame throttle.
  *
- * @param threshold - Distance from the top in pixels to consider "at top" (default: 20)
- * @returns { scrollY: number, isAtTop: boolean }
+ * @param heroOffsetRatio - Fraction of window.innerHeight considered "past hero" (default: 0.75)
+ * @returns { scrollY: number, isPastHero: boolean }
  */
-export function useScrollPosition(threshold: number = 20) {
-  const [scrollPosition, setScrollPosition] = useState({
+export function useScrollPosition(heroOffsetRatio: number = 0.75): ScrollState {
+  const [scrollPosition, setScrollPosition] = useState<ScrollState>({
     scrollY: 0,
-    isAtTop: true,
+    isPastHero: false,
   });
 
   useEffect(() => {
     let ticking = false;
 
+    const checkScroll = () => {
+      const currentY = window.scrollY;
+      const threshold = window.innerHeight * heroOffsetRatio;
+      setScrollPosition({
+        scrollY: currentY,
+        isPastHero: currentY >= threshold,
+      });
+      ticking = false;
+    };
+
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentY = window.scrollY;
-          setScrollPosition({
-            scrollY: currentY,
-            isAtTop: currentY <= threshold,
-          });
-          ticking = false;
-        });
+        window.requestAnimationFrame(checkScroll);
         ticking = true;
       }
     };
 
     // Initial check
-    handleScroll();
+    checkScroll();
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [threshold]);
+    window.addEventListener("resize", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [heroOffsetRatio]);
 
   return scrollPosition;
 }
