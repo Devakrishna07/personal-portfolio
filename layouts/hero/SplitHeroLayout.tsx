@@ -58,7 +58,7 @@ export function SplitHeroLayout({
           <div className="relative w-full h-full flex items-end justify-center lg:justify-end overflow-hidden">
             <Image
               src={image}
-              alt="Deva Prasad NR"
+              alt="Deva Prasad NR - Full-Stack Python Developer"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"

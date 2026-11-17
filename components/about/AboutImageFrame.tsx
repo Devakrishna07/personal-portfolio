@@ -69,7 +69,7 @@ export function AboutImageFrame({
         <div className="relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950">
           <Image
             src={imgSrc}
-            alt={name}
+            alt={`${name} - Full-Stack Python, Django & Frappe Developer`}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 440px"
             style={objectPositionStyle}

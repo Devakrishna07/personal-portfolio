@@ -16,10 +16,14 @@ const GeometricWallCanvas = dynamic(
 
 interface HeroSectionProps {
   showBackground?: boolean;
+  initialData?: typeof DEFAULT_PORTFOLIO_CONTENT;
 }
 
-export function HeroSection({ showBackground = false }: HeroSectionProps) {
-  const [data, setData] = useState(DEFAULT_PORTFOLIO_CONTENT);
+export function HeroSection({
+  showBackground = false,
+  initialData = DEFAULT_PORTFOLIO_CONTENT,
+}: HeroSectionProps) {
+  const [data, setData] = useState(initialData);
 
   useEffect(() => {
     async function fetchContent() {

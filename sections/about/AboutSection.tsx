@@ -5,8 +5,12 @@ import { AboutImageFrame, AboutContent } from "@/components/about";
 import { getPortfolioContent } from "@/lib/portfolio/service";
 import { DEFAULT_PORTFOLIO_CONTENT } from "@/lib/portfolio/types";
 
-export function AboutSection() {
-  const [data, setData] = useState(DEFAULT_PORTFOLIO_CONTENT);
+interface AboutSectionProps {
+  initialData?: typeof DEFAULT_PORTFOLIO_CONTENT;
+}
+
+export function AboutSection({ initialData = DEFAULT_PORTFOLIO_CONTENT }: AboutSectionProps) {
+  const [data, setData] = useState(initialData);
 
   useEffect(() => {
     async function loadData() {
