@@ -55,18 +55,18 @@ function CertificationCard({ item }: { item: CertificationItem }) {
               {item.name}
             </h4>
             {item.issueDate && (
-              <span className="text-xs font-mono text-red-400/90 px-2 py-0.5 rounded bg-red-950/60 border border-red-800/50 w-fit drop-shadow-[0_0_8px_rgba(239,68,68,0.2)]">
+              <span className="text-xs font-mono font-medium text-red-400">
                 {item.issueDate}
               </span>
             )}
           </div>
 
           <div className="text-sm font-medium text-slate-300 mt-0.5">
-            Issued by <span className="text-red-200">{item.issuer}</span>
+            Issued by <span className="text-slate-200">{item.issuer}</span>
           </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono text-slate-400 bg-slate-800/70 px-2.5 py-1 rounded border border-slate-700/60 select-all">
+          <div className="mt-2.5 flex flex-wrap items-center gap-3">
+            <span className="text-xs font-mono font-medium text-red-400/90 select-all">
               ID: {item.credentialId}
             </span>
 
@@ -75,7 +75,7 @@ function CertificationCard({ item }: { item: CertificationItem }) {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-red-300 bg-red-950/60 hover:bg-red-900/60 px-3 py-1 rounded border border-red-500/40 hover:border-red-400 transition-all shadow-[0_0_12px_rgba(239,68,68,0.2)] group/link"
+                className="inline-flex items-center gap-1 text-xs font-medium text-red-400 hover:text-red-300 underline underline-offset-4 transition-colors group/link"
               >
                 <span>Verify Credential</span>
                 <svg

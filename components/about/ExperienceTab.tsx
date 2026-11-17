@@ -55,8 +55,8 @@ function ExperienceCard({ item }: { item: ExperienceItem }) {
             <h4 className="text-base sm:text-lg font-semibold text-white truncate group-hover:text-red-300 transition-colors">
               {item.company}
             </h4>
-            <span className="text-xs font-mono text-red-400/90 px-2 py-0.5 rounded bg-red-950/60 border border-red-800/50 w-fit drop-shadow-[0_0_8px_rgba(239,68,68,0.2)]">
-              {item.startYear} - {item.endYear}
+            <span className="text-xs font-mono font-medium text-red-400">
+              {item.startYear} – {item.endYear}
             </span>
           </div>
 

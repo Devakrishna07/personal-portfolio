@@ -56,8 +56,8 @@ function EducationCard({ item }: { item: EducationItem }) {
             <h4 className="text-base sm:text-lg font-semibold text-white truncate group-hover:text-red-300 transition-colors">
               {item.institution}
             </h4>
-            <span className="text-xs font-mono text-red-400/90 px-2 py-0.5 rounded bg-red-950/60 border border-red-800/50 w-fit drop-shadow-[0_0_8px_rgba(239,68,68,0.2)]">
-              {item.startYear} - {item.endYear}
+            <span className="text-xs font-mono font-medium text-red-400">
+              {item.startYear} – {item.endYear}
             </span>
           </div>
 
@@ -65,10 +65,10 @@ function EducationCard({ item }: { item: EducationItem }) {
             {item.specialization}
           </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+          <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs">
             {item.location && (
-              <span className="inline-flex items-center gap-1 text-slate-400 bg-slate-800/70 px-2 py-1 rounded border border-slate-700/60">
-                <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="inline-flex items-center gap-1.5 text-slate-400">
+                <svg className="w-3.5 h-3.5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -76,7 +76,7 @@ function EducationCard({ item }: { item: EducationItem }) {
               </span>
             )}
             {item.marks && (
-              <span className="inline-flex items-center gap-1 font-mono text-red-300 bg-red-950/60 px-2.5 py-1 rounded border border-red-500/40 drop-shadow-[0_0_6px_rgba(239,68,68,0.25)]">
+              <span className="inline-flex items-center gap-1 font-mono font-semibold text-red-400">
                 <span className="text-red-500">★</span> {item.marks}
               </span>
             )}
