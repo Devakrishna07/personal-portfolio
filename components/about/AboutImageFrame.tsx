@@ -1,12 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { aboutConfig } from "@/config/about";
 
-export function AboutImageFrame() {
-  const [imgSrc, setImgSrc] = useState(aboutConfig.imagePath);
+interface AboutImageFrameProps {
+  image?: string;
+  name?: string;
+  imageFit?: "cover" | "contain";
+  imagePosition?: "top" | "center" | "bottom";
+}
+
+export function AboutImageFrame({
+  image = aboutConfig.imagePath,
+  name = aboutConfig.name,
+  imageFit = "cover",
+  imagePosition = "top",
+}: AboutImageFrameProps) {
+  const [imgSrc, setImgSrc] = useState(image);
+
+  useEffect(() => {
+    setImgSrc(image);
+  }, [image]);
+
+  const fitClass = imageFit === "contain" ? "object-contain" : "object-cover";
+  const positionClass =
+    imagePosition === "bottom"
+      ? "object-bottom"
+      : imagePosition === "center"
+      ? "object-center"
+      : "object-top";
 
   return (
     <motion.div
@@ -28,21 +52,21 @@ export function AboutImageFrame() {
         }}
         className="relative w-full h-full rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 bg-slate-900/90 backdrop-blur-2xl border border-red-500/20 shadow-2xl transition-colors duration-500 overflow-hidden flex flex-col justify-between"
       >
-        {/* Subtle red corner accents without bloom */}
+        {/* Subtle red corner accents */}
         <div className="absolute top-2.5 left-2.5 w-3 h-3 border-t-2 border-l-2 border-red-500/80 rounded-tl pointer-events-none" />
         <div className="absolute top-2.5 right-2.5 w-3 h-3 border-t-2 border-r-2 border-red-500/80 rounded-tr pointer-events-none" />
         <div className="absolute bottom-2.5 left-2.5 w-3 h-3 border-b-2 border-l-2 border-red-500/80 rounded-bl pointer-events-none" />
         <div className="absolute bottom-2.5 right-2.5 w-3 h-3 border-b-2 border-r-2 border-red-500/80 rounded-br pointer-events-none" />
 
-        {/* Inner Image Container with High Contrast & Full Opacity */}
+        {/* Inner Image Container */}
         <div className="relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950">
           <Image
             src={imgSrc}
-            alt={aboutConfig.name}
+            alt={name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 440px"
             onError={() => setImgSrc(aboutConfig.fallbackImagePath)}
-            className="object-cover object-top opacity-100 transition-transform duration-700 ease-out group-hover:scale-105"
+            className={`${fitClass} ${positionClass} opacity-100 transition-transform duration-700 ease-out group-hover:scale-105`}
             priority
           />
           {/* Subtle bottom vignette to keep name legible */}
@@ -53,7 +77,7 @@ export function AboutImageFrame() {
         <div className="mt-2.5 px-2 py-1.5 flex items-center justify-between text-xs font-mono text-red-300">
           <span className="flex items-center gap-1.5 font-semibold">
             <span className="w-2 h-2 rounded-full bg-red-500" />
-            {aboutConfig.name}
+            {name}
           </span>
           <span className="text-slate-400 text-[11px] tracking-wider">PORTFOLIO // PROFILE</span>
         </div>

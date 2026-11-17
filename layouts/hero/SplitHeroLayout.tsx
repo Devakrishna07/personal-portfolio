@@ -6,12 +6,31 @@ import Image from "next/image";
 interface SplitHeroLayoutProps {
   background?: React.ReactNode;
   content: React.ReactNode;
+  image?: string;
+  imageFit?: "contain" | "cover";
+  imagePosition?: "bottom-right" | "center" | "bottom-center" | "top";
+  imageScale?: number;
 }
 
 export function SplitHeroLayout({
   background,
   content,
+  image = "/deva-mood.png",
+  imageFit = "contain",
+  imagePosition = "bottom-right",
+  imageScale = 110,
 }: SplitHeroLayoutProps) {
+  // Map positioning choices to Tailwind object position classes
+  const positionClasses = {
+    "bottom-right": "object-bottom lg:object-right-bottom justify-center lg:justify-end",
+    "center": "object-center justify-center",
+    "bottom-center": "object-bottom justify-center",
+    "top": "object-top justify-center",
+  }[imagePosition] || "object-bottom lg:object-right-bottom justify-center lg:justify-end";
+
+  const fitClass = imageFit === "cover" ? "object-cover" : "object-contain";
+  const scaleStyle = { transform: `scale(${imageScale / 100})` };
+
   return (
     <section
       id="home"
@@ -26,16 +45,17 @@ export function SplitHeroLayout({
 
       {/* Main Foreground Layout */}
       <div className="relative z-10 w-dvw h-dvh min-h-dvh flex flex-col lg:flex-row items-center justify-between pointer-events-none">
-        {/* Right Side: Exactly 50% width on desktop, 0 margin, fully scaled image */}
+        {/* Right Side: Exactly 50% width on desktop */}
         <div className="order-1 lg:order-2 w-dvw lg:w-1/2 h-[50dvh] sm:h-[56dvh] lg:h-dvh m-0 p-0 flex items-end justify-center lg:justify-end relative pointer-events-none select-none">
-          <div className="relative w-full h-full flex items-end justify-center lg:justify-end">
+          <div className="relative w-full h-full flex items-end justify-center lg:justify-end overflow-hidden">
             <Image
-              src="/deva-mood.png"
+              src={image}
               alt="Deva Prasad NR"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-contain object-bottom lg:object-right-bottom scale-105 lg:scale-110 drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.02]"
+              style={scaleStyle}
+              className={`${fitClass} ${positionClasses} drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.02] transition-all duration-300`}
             />
           </div>
         </div>

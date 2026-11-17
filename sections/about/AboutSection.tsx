@@ -1,9 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AboutImageFrame, AboutContent } from "@/components/about";
+import { getPortfolioContent } from "@/lib/portfolio/service";
+import { DEFAULT_PORTFOLIO_CONTENT } from "@/lib/portfolio/types";
 
 export function AboutSection() {
+  const [data, setData] = useState(DEFAULT_PORTFOLIO_CONTENT);
+
+  useEffect(() => {
+    async function loadData() {
+      const liveData = await getPortfolioContent();
+      setData(liveData);
+    }
+    loadData();
+  }, []);
+
   return (
     <section
       id="about"
@@ -13,12 +25,17 @@ export function AboutSection() {
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16">
         {/* Left (or Top on mobile): Framed Image */}
         <div className="w-full lg:w-5/12 flex items-center justify-center">
-          <AboutImageFrame />
+          <AboutImageFrame
+            image={data.about_image}
+            name={data.about_name}
+            imageFit={data.about_image_fit}
+            imagePosition={data.about_image_position}
+          />
         </div>
 
-        {/* Right (or Bottom on mobile): Pure Foreground Typography directly on 3D canvas */}
+        {/* Right (or Bottom on mobile): Pure Foreground Typography */}
         <div className="w-full lg:w-7/12 flex items-center justify-center">
-          <AboutContent />
+          <AboutContent data={data} />
         </div>
       </div>
     </section>

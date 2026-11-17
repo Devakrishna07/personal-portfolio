@@ -1,10 +1,12 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import React from "react";
 import { HeroContent } from "@/components/ui/HeroContent";
 import { WallLoader } from "@/components/visual/WallLoader";
 import { SplitHeroLayout } from "@/layouts/hero/SplitHeroLayout";
+import { getPortfolioContent } from "@/lib/portfolio/service";
+import { DEFAULT_PORTFOLIO_CONTENT } from "@/lib/portfolio/types";
 
 // 3D Geometric Wall Background
 const GeometricWallCanvas = dynamic(
@@ -17,10 +19,24 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ showBackground = false }: HeroSectionProps) {
+  const [data, setData] = useState(DEFAULT_PORTFOLIO_CONTENT);
+
+  useEffect(() => {
+    async function fetchContent() {
+      const liveData = await getPortfolioContent();
+      setData(liveData);
+    }
+    fetchContent();
+  }, []);
+
   return (
     <SplitHeroLayout
       background={showBackground ? <GeometricWallCanvas /> : undefined}
-      content={<HeroContent />}
+      image={data.hero_image}
+      imageFit={data.hero_image_fit}
+      imagePosition={data.hero_image_position}
+      imageScale={data.hero_image_scale}
+      content={<HeroContent name={data.hero_name} roles={data.hero_roles} />}
     />
   );
 }

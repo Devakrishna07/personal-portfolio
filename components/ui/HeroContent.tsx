@@ -3,10 +3,19 @@
 import React from "react";
 import { useGlitchText } from "@/hooks/animation/useGlitchText";
 
-const ROLES = ["Developer", "Creator", "DevOps Engineer"];
+const DEFAULT_ROLES = ["Developer", "Creator", "DevOps Engineer"];
 
-export function HeroContent() {
-  const { displayText, isGlitching } = useGlitchText(ROLES, 2000);
+interface HeroContentProps {
+  name?: string;
+  roles?: string[];
+}
+
+export function HeroContent({
+  name = "Deva Prasad NR",
+  roles = DEFAULT_ROLES,
+}: HeroContentProps) {
+  const activeRoles = roles && roles.length > 0 ? roles : DEFAULT_ROLES;
+  const { displayText, isGlitching } = useGlitchText(activeRoles, 2000);
 
   return (
     <div className="flex flex-col items-start justify-center max-w-2xl text-left select-none z-20 pointer-events-auto font-sans">
@@ -20,19 +29,20 @@ export function HeroContent() {
         I am
       </span>
 
-      {/* Line 3: Deva Prasad NR */}
+      {/* Line 3: Name */}
       <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-4 leading-tight drop-shadow-md">
-        Deva Prasad NR
+        {name}
       </h1>
 
-      {/* Line 4: A Developer (with 6s Glitch Loop) */}
+      {/* Line 4: A Developer (with Glitch Loop) */}
       <div className="flex items-baseline gap-3 text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-red-500 mb-10">
         <span className="text-white/80 font-medium">A</span>
         <span
-          className={`font-mono transition-all duration-75 inline-block ${isGlitching
+          className={`font-mono transition-all duration-75 inline-block ${
+            isGlitching
               ? "text-red-400 drop-shadow-[0_0_12px_rgba(239,68,68,0.9)] scale-105"
               : "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-            }`}
+          }`}
         >
           {displayText}
         </span>
@@ -53,17 +63,10 @@ export function HeroContent() {
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M 3 8 Q 45 4, 85 9 T 155 7"
+            d="M2 13C30 5 95 3 158 11"
             stroke="currentColor"
-            strokeWidth="3.2"
+            strokeWidth="3.5"
             strokeLinecap="round"
-          />
-          <path
-            d="M 12 13 Q 55 10, 100 12 T 145 11"
-            stroke="currentColor"
-            strokeWidth="2.0"
-            strokeLinecap="round"
-            strokeOpacity="0.85"
           />
         </svg>
       </div>
