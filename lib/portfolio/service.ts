@@ -33,6 +33,100 @@ export async function getProjects(): Promise<Project[]> {
   }
 }
 
+export async function createProject(
+  project: Omit<Project, "id">
+): Promise<{ success: boolean; data?: Project; error?: string }> {
+  try {
+    const supabase = createClient();
+    const payload = {
+      title: project.title,
+      description: project.description,
+      image_url: project.image_url || "",
+      github_url: project.github_url || null,
+      live_url: project.live_url || null,
+      order_index: project.order_index ?? 0,
+      tags: project.tags || [],
+    };
+
+    const { data, error } = await supabase
+      .from("projects")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        image_url: data.image_url || "",
+        github_url: data.github_url || undefined,
+        live_url: data.live_url || undefined,
+        order_index: data.order_index ?? 0,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+      },
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to create project";
+    return { success: false, error: msg };
+  }
+}
+
+export async function updateProject(
+  id: string,
+  updates: Partial<Project>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createClient();
+    const payload: Record<string, unknown> = {};
+
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.image_url !== undefined) payload.image_url = updates.image_url;
+    if (updates.github_url !== undefined) payload.github_url = updates.github_url || null;
+    if (updates.live_url !== undefined) payload.live_url = updates.live_url || null;
+    if (updates.order_index !== undefined) payload.order_index = updates.order_index;
+    if (updates.tags !== undefined) payload.tags = updates.tags;
+
+    const { error } = await supabase
+      .from("projects")
+      .update(payload)
+      .eq("id", id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to update project";
+    return { success: false, error: msg };
+  }
+}
+
+export async function deleteProject(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.from("projects").delete().eq("id", id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete project";
+    return { success: false, error: msg };
+  }
+}
+
 
 export async function getPortfolioContent(): Promise<PortfolioContent> {
   try {

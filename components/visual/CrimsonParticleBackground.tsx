@@ -375,6 +375,17 @@ export function CrimsonParticleBackground({
     );
 
     // 5. Initialize Buffer Attributes
+    // Origin calculation: Starts from left-top on desktop, right-top on tablet/mobile
+    const isTabletOrBelowInit = window.innerWidth < 1024;
+    const vFovRadInit = (camera.fov * Math.PI) / 180;
+    const visHInit = 2.0 * Math.tan(vFovRadInit * 0.5) * camera.position.z;
+    const visWInit = visHInit * (window.innerWidth / window.innerHeight);
+
+    const startXOrigin = isTabletOrBelowInit
+      ? visWInit * 0.42 // Top-Right on tablet and below
+      : -visWInit * 0.42; // Top-Left on desktop and above
+    const startYOrigin = visHInit * 0.44; // Top of the viewport
+
     const startPositions = new Float32Array(PARTICLE_COUNT * 3);
     const burstDirs = new Float32Array(PARTICLE_COUNT * 3);
     const targetPositions = new Float32Array(PARTICLE_COUNT * 3);
@@ -385,21 +396,22 @@ export function CrimsonParticleBackground({
       const v = Math.random();
       const theta = u * 2.0 * Math.PI;
       const phi = Math.acos(2.0 * v - 1.0);
-      const r = 0.14 * Math.cbrt(Math.random());
+      const r = 0.18 * Math.cbrt(Math.random());
 
       const sinPhi = Math.sin(phi);
       const dx = sinPhi * Math.cos(theta);
       const dy = sinPhi * Math.sin(theta);
       const dz = Math.cos(phi);
 
-      startPositions[i * 3] = dx * r;
-      startPositions[i * 3 + 1] = dy * r;
+      // Start particles clustered at the responsive top corner origin
+      startPositions[i * 3] = startXOrigin + dx * r;
+      startPositions[i * 3 + 1] = startYOrigin + dy * r;
       startPositions[i * 3 + 2] = dz * r;
 
-      // Wider directional spread covering full screen width & height
-      burstDirs[i * 3] = dx * 2.6;
-      burstDirs[i * 3 + 1] = dy * 1.9;
-      burstDirs[i * 3 + 2] = dz * 1.2;
+      // Random 3D omnidirectional velocity burst vectors
+      burstDirs[i * 3] = dx * 2.8 + (Math.random() - 0.5) * 1.5;
+      burstDirs[i * 3 + 1] = dy * 2.2 + (Math.random() - 0.5) * 1.5;
+      burstDirs[i * 3 + 2] = dz * 1.6 + (Math.random() - 0.5) * 1.2;
 
       if (i < LOGO_COUNT) {
         targetPositions[i * 3] = initialEmblemPoints[i * 3];
@@ -578,10 +590,18 @@ export function CrimsonParticleBackground({
           vec3 curl2 = curlNoise(fieldCoord2) * activeCurl;
           ribbonPos += curl2 * (0.12 + easeCloud * 0.36 + uScrollDisperse * 0.42);
 
-          // Initial Swirl: 56% (0.56) during first 10 seconds on reload, then smoothly transitions to 2% (0.02)
-          float swirlDecay = smoothstep(10.0, 6.0, uTime); // 1.0 during 0-6s, decays to 0.0 by 10s
-          float currentSwirl = mix(0.02, 0.56, swirlDecay);
+          // Initial Swirl: 89% (0.89) during first 20 seconds, then smoothly transitions to 2% (0.02)
+          float swirlDecay = smoothstep(20.0, 15.0, uTime); // 1.0 during 0-15s, smoothly transitions to 0.0 by 20s
+          float currentSwirl = mix(0.02, 0.89, swirlDecay);
           ribbonPos *= 1.0 + currentSwirl * sin(uFlowTime * 0.85 + colorSeed * 3.14);
+
+          // Random 3D Brownian micro-wander for natural organic particle motion
+          vec3 randomMicroJitter = vec3(
+            sin(uFlowTime * 1.4 + alphaSeed * 18.0),
+            cos(uFlowTime * 1.6 + colorSeed * 22.0),
+            sin(uFlowTime * 1.2 + sizeSeed * 14.0)
+          ) * (0.04 + easeCloud * 0.08);
+          ribbonPos += randomMicroJitter;
 
           // 3. Top-Left Brand Emblem Target Position + Living Shimmer
           vec3 logoWorldPos = uLogoAnchor + aTargetPos * uLogoScale;
@@ -741,7 +761,7 @@ export function CrimsonParticleBackground({
     // 9. Window Interactivity: Scroll, Pointer Move & Parallax
     let simTime = 0;
     let flowTime = 0;
-    const flowSpeed = 0.6 // 6% Flow speed
+    const flowSpeed = 0.10; // 10% Flow speed (reduced as requested)
     let targetScrollDisperse = 0.0;
     let currentScrollDisperse = 0.0;
 

@@ -124,31 +124,35 @@ export function AdminDashboardOverview({ userEmail }: AdminDashboardOverviewProp
         </Link>
 
         {/* 3. Projects Card */}
-        <div className="rounded-2xl bg-[#080808]/50 border border-neutral-800/60 p-6 flex flex-col justify-between opacity-75">
+        <Link
+          href="/admin/dashboard/projects"
+          className="group relative rounded-2xl bg-[#080808] border border-neutral-800 hover:border-red-500/60 hover:bg-[#0c0c0c] p-6 transition-all duration-300 flex flex-col justify-between shadow-lg hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]"
+        >
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center justify-center text-neutral-500">
+              <div className="w-10 h-10 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-red-500 group-hover:scale-105 transition-transform">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
-                Section
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/60 text-emerald-400">
+                Active
               </span>
             </div>
 
-            <h3 className="text-lg font-bold text-neutral-300">
+            <h3 className="text-lg font-bold text-white group-hover:text-red-400 transition-colors">
               Projects
             </h3>
-            <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
-              Manage portfolio projects, tech stacks, live URLs, and GitHub source repository links.
+            <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+              Create, update, and manage portfolio projects, upload project preview images, and configure live/code links.
             </p>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-neutral-900 flex items-center justify-between text-xs font-mono text-neutral-500">
-            <span>Linked to #projects</span>
+          <div className="mt-6 pt-4 border-t border-neutral-900 flex items-center justify-between text-xs font-mono text-neutral-400 group-hover:text-neutral-200">
+            <span>Manage Projects</span>
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );
