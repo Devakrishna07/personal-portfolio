@@ -568,7 +568,7 @@ export function CrimsonParticleBackground({
           ribbonPos += aTargetPos * (1.0 - isLogo) * easeCloud; // disperse ambient particles across full screen
           ribbonPos.y += uScrollDisperse * (0.4 + colorSeed * 0.8);
 
-          // 2. Two-Octave Curl-Noise Streamline Advection (5% Curl & 2% Swirl)
+          // 2. Two-Octave Curl-Noise Streamline Advection
           float activeCurl = uCurlStrength * (1.0 + uScrollDisperse * 1.15);
           vec3 fieldCoord1 = ribbonPos * 0.62 + vec3(uFlowTime * 0.075, -uFlowTime * 0.055, uFlowTime * 0.045);
           vec3 curl1 = curlNoise(fieldCoord1) * activeCurl;
@@ -578,8 +578,10 @@ export function CrimsonParticleBackground({
           vec3 curl2 = curlNoise(fieldCoord2) * activeCurl;
           ribbonPos += curl2 * (0.12 + easeCloud * 0.36 + uScrollDisperse * 0.42);
 
-          // Swirl reduced to 2% (0.02)
-          ribbonPos *= 1.0 + 0.02 * sin(uFlowTime * 0.85 + colorSeed * 3.14);
+          // Initial Swirl: 56% (0.56) during first 10 seconds on reload, then smoothly transitions to 2% (0.02)
+          float swirlDecay = smoothstep(10.0, 6.0, uTime); // 1.0 during 0-6s, decays to 0.0 by 10s
+          float currentSwirl = mix(0.02, 0.56, swirlDecay);
+          ribbonPos *= 1.0 + currentSwirl * sin(uFlowTime * 0.85 + colorSeed * 3.14);
 
           // 3. Top-Left Brand Emblem Target Position + Living Shimmer
           vec3 logoWorldPos = uLogoAnchor + aTargetPos * uLogoScale;
@@ -692,7 +694,9 @@ export function CrimsonParticleBackground({
       attr.needsUpdate = true;
     };
 
-    // 8. Top-Left Viewport Frustum Calculation
+    // 8. Viewport Frustum Calculation:
+    // Desktop (>= 1024px): Top-Left corner
+    // Tablet & Mobile (< 1024px): Top-Right corner
     function adjustResponsiveViewport() {
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -706,13 +710,22 @@ export function CrimsonParticleBackground({
       const visibleHeight = 2 * Math.tan(vFovRad * 0.5) * camera.position.z;
       const visibleWidth = visibleHeight * aspect;
 
+      const isTabletOrBelow = w < 1024;
       const logoScale = w < 640 ? visibleHeight * 0.115 : visibleHeight * 0.145;
 
-      const leftPadPx = w >= 1024 ? 108 : (w >= 640 ? 74 : 46);
       const topPadPx = w >= 640 ? 54 : 48;
-
-      const anchorX = -visibleWidth * 0.5 + (leftPadPx / w) * visibleWidth;
       const anchorY = visibleHeight * 0.5 - (topPadPx / h) * visibleHeight;
+
+      let anchorX: number;
+      if (isTabletOrBelow) {
+        // Form on the TOP-RIGHT corner on tablet and mobile
+        const rightPadPx = w >= 640 ? 74 : 46;
+        anchorX = visibleWidth * 0.5 - (rightPadPx / w) * visibleWidth;
+      } else {
+        // Form on the TOP-LEFT corner on desktop
+        const leftPadPx = 108;
+        anchorX = -visibleWidth * 0.5 + (leftPadPx / w) * visibleWidth;
+      }
 
       particleMaterial.uniforms.uLogoAnchor.value.set(anchorX, anchorY, 0);
       particleMaterial.uniforms.uLogoScale.value = logoScale;
