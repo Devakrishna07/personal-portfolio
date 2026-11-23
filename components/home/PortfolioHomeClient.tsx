@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { WallLoader } from "@/components/visual/WallLoader";
 import { HeroSection } from "@/sections/hero";
 import { AboutSection } from "@/sections/about";
+import { ProjectsSection } from "@/sections/projects";
 import { PortfolioContent } from "@/lib/portfolio/types";
 
 // 3D Crimson Particle Background & Top-Left Logo Morph
@@ -29,6 +30,7 @@ export function PortfolioHomeClient({ initialData }: PortfolioHomeClientProps) {
       <div className="relative z-10">
         <HeroSection initialData={initialData} />
         <AboutSection initialData={initialData} />
+        <ProjectsSection />
       </div>
     </main>
   );

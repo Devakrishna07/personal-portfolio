@@ -1,5 +1,38 @@
 import { createClient } from "@/lib/supabase/client";
-import { PortfolioContent, DEFAULT_PORTFOLIO_CONTENT } from "./types";
+import {
+  PortfolioContent,
+  DEFAULT_PORTFOLIO_CONTENT,
+  Project,
+  DEFAULT_PROJECTS,
+} from "./types";
+
+export async function getProjects(): Promise<Project[]> {
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("projects")
+      .select("*")
+      .order("order_index", { ascending: true });
+
+    if (error || !data || data.length === 0) {
+      return DEFAULT_PROJECTS;
+    }
+
+    return data.map((item) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      image_url: item.image_url || "/aboutme_image.png",
+      github_url: item.github_url || undefined,
+      live_url: item.live_url || undefined,
+      order_index: item.order_index ?? 0,
+      tags: Array.isArray(item.tags) ? item.tags : [],
+    }));
+  } catch {
+    return DEFAULT_PROJECTS;
+  }
+}
+
 
 export async function getPortfolioContent(): Promise<PortfolioContent> {
   try {
