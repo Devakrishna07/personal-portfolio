@@ -56,15 +56,23 @@ export function SplitHeroLayout({
         {/* Right Side: Exactly 50% width on desktop */}
         <div className="order-1 lg:order-2 w-dvw lg:w-1/2 h-[50dvh] sm:h-[56dvh] lg:h-dvh m-0 p-0 flex items-end justify-center lg:justify-end relative pointer-events-none select-none">
           <div className="relative w-full h-full flex items-end justify-center lg:justify-end overflow-hidden">
-            <Image
-              src={image}
-              alt="Deva Prasad NR - Full-Stack Python Developer"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              style={imageStyle}
-              className={`${fitClass} ${imageFit === 'contain' ? positionClasses : ''} drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.02] transition-all duration-300`}
-            />
+            {image && image.trim().length > 0 ? (
+              <Image
+                src={image}
+                alt="Deva Prasad NR - Full-Stack Python Developer"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                style={imageStyle}
+                className={`${fitClass} ${imageFit === 'contain' ? positionClasses : ''} drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] filter contrast-[1.05] brightness-[1.02] transition-all duration-300`}
+              />
+            ) : (
+              <div className="w-full h-full flex items-end justify-center lg:justify-end p-8">
+                <div className="w-64 h-80 rounded-2xl bg-neutral-900/40 border border-neutral-800/60 animate-pulse relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-red-950/20 to-transparent" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

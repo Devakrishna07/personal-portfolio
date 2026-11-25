@@ -28,7 +28,9 @@ export function HeroSection({
   useEffect(() => {
     async function fetchContent() {
       const liveData = await getPortfolioContent();
-      setData(liveData);
+      if (liveData) {
+        setData(liveData);
+      }
     }
     fetchContent();
   }, []);

@@ -1,6 +1,8 @@
 import { Metadata } from "next";
+import { connection } from "next/server";
 import { PortfolioHomeClient } from "@/components/home/PortfolioHomeClient";
 import { DEFAULT_PORTFOLIO_CONTENT } from "@/lib/portfolio/types";
+import { getPortfolioContentServer } from "@/lib/portfolio/serverService";
 
 export const metadata: Metadata = {
   title: "Deva Prasad NR | Full-Stack Python Developer (Django, Frappe, React)",
@@ -11,8 +13,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
-  const initialData = DEFAULT_PORTFOLIO_CONTENT;
+export default async function Home() {
+  await connection();
+  const serverData = await getPortfolioContentServer();
+  const initialData = serverData || DEFAULT_PORTFOLIO_CONTENT;
 
   return (
     <>

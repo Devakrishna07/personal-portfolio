@@ -28,7 +28,9 @@ export function HomeContentEditor() {
   useEffect(() => {
     async function loadData() {
       const data = await getPortfolioContent();
-      populateForm(data);
+      if (data) {
+        populateForm(data);
+      }
       setLoading(false);
     }
     loadData();

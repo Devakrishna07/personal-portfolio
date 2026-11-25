@@ -1,5 +1,5 @@
 -- ===================================================================
--- Supabase Schema: Complete Setup with Crop Frame & Focal Point Columns
+-- Supabase Schema: Complete Setup with Projects, Content & Storage
 -- Run in Supabase SQL Editor: Dashboard -> SQL Editor -> New Query -> Run
 -- ===================================================================
 
@@ -75,17 +75,6 @@ create table if not exists public.portfolio_content (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Ensure all columns exist
-alter table public.portfolio_content add column if not exists hero_image_fit text default 'contain';
-alter table public.portfolio_content add column if not exists hero_image_position text default 'bottom-right';
-alter table public.portfolio_content add column if not exists hero_image_scale int default 110;
-alter table public.portfolio_content add column if not exists hero_image_focal_x int default 50;
-alter table public.portfolio_content add column if not exists hero_image_focal_y int default 100;
-alter table public.portfolio_content add column if not exists about_image_fit text default 'cover';
-alter table public.portfolio_content add column if not exists about_image_position text default 'top';
-alter table public.portfolio_content add column if not exists about_image_focal_x int default 50;
-alter table public.portfolio_content add column if not exists about_image_focal_y int default 20;
-
 alter table public.portfolio_content enable row level security;
 
 drop policy if exists "Public read portfolio_content" on public.portfolio_content;
@@ -150,3 +139,42 @@ insert into public.portfolio_content (
   'https://linkedin.com/in/devaprasad',
   'https://github.com/devaprasad'
 ) on conflict (id) do nothing;
+
+-- 4. Projects Table & RLS Policies
+create table if not exists public.projects (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null,
+  image_url text default '',
+  github_url text,
+  live_url text,
+  order_index integer not null default 0,
+  tags text[] default array[]::text[],
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.projects enable row level security;
+
+drop policy if exists "Public read projects" on public.projects;
+create policy "Public read projects"
+  on public.projects for select
+  using (true);
+
+drop policy if exists "Allow authenticated admin insert projects" on public.projects;
+create policy "Allow authenticated admin insert projects"
+  on public.projects for insert
+  to authenticated
+  with check (true);
+
+drop policy if exists "Allow authenticated admin update projects" on public.projects;
+create policy "Allow authenticated admin update projects"
+  on public.projects for update
+  to authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "Allow authenticated admin delete projects" on public.projects;
+create policy "Allow authenticated admin delete projects"
+  on public.projects for delete
+  to authenticated
+  using (true);

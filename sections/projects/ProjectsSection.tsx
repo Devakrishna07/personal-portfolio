@@ -1,20 +1,29 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ProjectCarousel } from "@/components/projects";
-import { Project, DEFAULT_PROJECTS } from "@/lib/portfolio/types";
+import dynamic from "next/dynamic";
+import { Project } from "@/lib/portfolio/types";
 import { getProjects } from "@/lib/portfolio/service";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { ProjectEmptyState } from "@/components/projects/ProjectEmptyState";
+import { ProjectsGridSkeleton } from "@/components/loading/ProjectCardSkeleton";
+
+// Dynamically lazy-load the interactive carousel with futuristic skeleton fallback
+const ProjectCarousel = dynamic(
+  () => import("@/components/projects").then((mod) => mod.ProjectCarousel),
+  {
+    ssr: false,
+    loading: () => <ProjectsGridSkeleton count={3} />,
+  }
+);
 
 interface ProjectsSectionProps {
   initialProjects?: Project[];
 }
 
-export function ProjectsSection({
-  initialProjects = DEFAULT_PROJECTS,
-}: ProjectsSectionProps) {
+export function ProjectsSection({ initialProjects = [] }: ProjectsSectionProps) {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(initialProjects.length === 0);
 
   useEffect(() => {
     let isMounted = true;
@@ -22,11 +31,11 @@ export function ProjectsSection({
       try {
         setLoading(true);
         const data = await getProjects();
-        if (isMounted && data && data.length > 0) {
+        if (isMounted) {
           setProjects(data);
         }
       } catch (err) {
-        console.error("Failed to load projects:", err);
+        console.error("Failed to load projects from backend API:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -49,16 +58,14 @@ export function ProjectsSection({
           <SectionHeading title="My Projects" />
         </div>
 
-        {/* Carousel Container */}
-        <div className="w-full">
-          {projects.length > 0 ? (
-            <ProjectCarousel projects={projects} />
-          ) : (
-            <div className="text-center py-16 text-slate-500 font-mono text-sm">
-              {loading ? "Loading projects..." : "No projects found."}
-            </div>
-          )}
-        </div>
+        {/* Content Area with Lazy Loading / Skeletons / Empty State */}
+        {loading ? (
+          <ProjectsGridSkeleton count={3} />
+        ) : projects.length === 0 ? (
+          <ProjectEmptyState />
+        ) : (
+          <ProjectCarousel projects={projects} />
+        )}
       </div>
     </section>
   );

@@ -22,10 +22,12 @@ export function AboutImageFrame({
   focalX = 50,
   focalY = 20,
 }: AboutImageFrameProps) {
-  const [imgSrc, setImgSrc] = useState(image);
+  const [imgSrc, setImgSrc] = useState(image || aboutConfig.imagePath);
 
   useEffect(() => {
-    setImgSrc(image);
+    if (image && image.trim().length > 0) {
+      setImgSrc(image);
+    }
   }, [image]);
 
   const fitClass = imageFit === "contain" ? "object-contain" : "object-cover";

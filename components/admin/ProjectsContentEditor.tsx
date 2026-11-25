@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { Project } from "@/lib/portfolio/types";
@@ -10,8 +11,18 @@ import {
   updateProject,
   deleteProject,
 } from "@/lib/portfolio/service";
-import { ProjectFormModal } from "./ProjectFormModal";
-import { ProjectDeleteDialog } from "./ProjectDeleteDialog";
+import { ProjectsGridSkeleton } from "@/components/loading/ProjectCardSkeleton";
+
+// Lazy-load modal and delete dialog to reduce initial bundle size
+const ProjectFormModal = dynamic(
+  () => import("./ProjectFormModal").then((mod) => mod.ProjectFormModal),
+  { ssr: false }
+);
+
+const ProjectDeleteDialog = dynamic(
+  () => import("./ProjectDeleteDialog").then((mod) => mod.ProjectDeleteDialog),
+  { ssr: false }
+);
 
 function CodePlaceholderIcon() {
   return (
@@ -57,7 +68,7 @@ export function ProjectsContentEditor() {
       const data = await getProjects();
       setProjects(data);
     } catch {
-      showNotification("error", "Failed to load projects from Supabase");
+      showNotification("error", "Failed to load projects from backend API");
     } finally {
       setLoading(false);
     }
@@ -143,7 +154,7 @@ export function ProjectsContentEditor() {
             Manage Portfolio Projects
           </h1>
           <p className="text-xs text-neutral-400 font-mono mt-1">
-            Create, update, or remove projects stored in Supabase
+            Create, update, or remove projects stored in Supabase via Backend API
           </p>
         </div>
 
@@ -188,14 +199,11 @@ export function ProjectsContentEditor() {
       {/* Projects Grid / List */}
       <div className="mt-8">
         {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center text-xs font-mono text-neutral-500">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping mb-3" />
-            Loading projects from Supabase...
-          </div>
+          <ProjectsGridSkeleton count={3} />
         ) : projects.length === 0 ? (
           <div className="py-20 text-center rounded-2xl border border-dashed border-neutral-800 p-8">
             <p className="text-sm font-mono text-neutral-400 mb-4">
-              No projects found in the database.
+              No projects found in the backend database.
             </p>
             <button
               type="button"
@@ -305,22 +313,26 @@ export function ProjectsContentEditor() {
         )}
       </div>
 
-      {/* Add / Edit Modal */}
-      <ProjectFormModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSaveProject}
-        initialData={editingProject}
-      />
+      {/* Add / Edit Modal (Dynamically Imported) */}
+      {modalOpen && (
+        <ProjectFormModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onSubmit={handleSaveProject}
+          initialData={editingProject}
+        />
+      )}
 
-      {/* Delete Confirmation Modal */}
-      <ProjectDeleteDialog
-        isOpen={Boolean(deleteTarget)}
-        projectTitle={deleteTarget?.title || ""}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteTarget(null)}
-        isDeleting={isDeleting}
-      />
+      {/* Delete Confirmation Modal (Dynamically Imported) */}
+      {Boolean(deleteTarget) && (
+        <ProjectDeleteDialog
+          isOpen={Boolean(deleteTarget)}
+          projectTitle={deleteTarget?.title || ""}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+          isDeleting={isDeleting}
+        />
+      )}
     </div>
   );
 }

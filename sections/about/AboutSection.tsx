@@ -16,7 +16,9 @@ export function AboutSection({ initialData = DEFAULT_PORTFOLIO_CONTENT }: AboutS
   useEffect(() => {
     async function loadData() {
       const liveData = await getPortfolioContent();
-      setData(liveData);
+      if (liveData) {
+        setData(liveData);
+      }
     }
     loadData();
   }, []);

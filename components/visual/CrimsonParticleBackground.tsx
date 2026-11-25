@@ -813,12 +813,23 @@ export function CrimsonParticleBackground({
     handleScroll();
     adjustResponsiveViewport();
 
-    // 10. Animation Loop
+    // 10. Animation Loop with Tab Visibility Check & Throttle
     const clock = new THREE.Clock();
+    let isTabVisible = !document.hidden;
+
+    const onVisibilityChange = () => {
+      isTabVisible = !document.hidden;
+      if (isTabVisible) {
+        clock.getDelta(); // reset delta so there's no sudden jump
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     function animate() {
       if (!isMounted) return;
       animationFrameId = requestAnimationFrame(animate);
+
+      if (!isTabVisible) return; // Pause rendering loop when tab is backgrounded
 
       const dt = Math.min(clock.getDelta(), 0.05);
 
@@ -846,6 +857,7 @@ export function CrimsonParticleBackground({
       isMounted = false;
       cancelAnimationFrame(animationFrameId);
 
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("touchmove", onTouchMove);
